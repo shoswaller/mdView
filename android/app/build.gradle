@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePath = System.getenv('MARKVIEW_KEYSTORE')
+
+android {
+    namespace 'com.markview.reader'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.markview.reader'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv('MARKVIEW_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('MARKVIEW_KEY_ALIAS') ?: 'markview'
+                keyPassword System.getenv('MARKVIEW_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+        }
+        release {
+            minifyEnabled false
+            if (keystorePath) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError true
+    }
+}
+
+dependencies {
+    implementation 'com.github.mwiede:jsch:0.2.24'
+}

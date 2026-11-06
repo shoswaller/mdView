@@ -1,0 +1,59 @@
+{
+  "name": "markview",
+  "version": "1.0.0",
+  "description": "墨页：离线 Markdown 查看与编辑工具",
+  "main": "windows/main.js",
+  "author": "Markview",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.markview.desktop",
+    "productName": "墨页",
+    "electronDist": "node_modules/electron/dist",
+    "files": [
+      "index.html",
+      "windows/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "windows/icon.ico",
+      "artifactName": "Markview-Setup-${version}.${ext}",
+      "fileAssociations": [
+        {
+          "ext": [
+            "md",
+            "markdown",
+            "mdown",
+            "mkd"
+          ],
+          "name": "Markview Markdown Document",
+          "description": "Markdown 文档",
+          "icon": "windows/icon.ico",
+          "role": "Editor"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "墨页"
+    }
+  },
+  "dependencies": {
+    "ssh2": "^1.17.0"
+  }
+}

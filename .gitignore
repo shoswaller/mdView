@@ -1,0 +1,11 @@
+.work/
+android/.gradle/
+android/local.properties
+android/build/
+android/app/build/
+node_modules/
+release/
+*.apk
+*.aab
+*.keystore
+*.jks
