@@ -4,12 +4,12 @@
 
 Markview is an offline Markdown viewer and editor for Windows, Android, and the browser. It combines a distraction-free reading view, side-by-side editing and preview, local drafts, and remote Markdown editing over SFTP.
 
-The browser edition is a single, self-contained `index.html`. Styles, icons, the Markdown parser, and the sanitizer are embedded, so no server, installation, account, or network connection is required for local documents.
+The Windows and Android clients share a local HTML renderer. The Markdown parser, sanitizer, and Mermaid engine are bundled, so no server, account, or network connection is required for local documents.
 
 ## Download
 
-- [Windows x64 installer](https://github.com/shoswaller/mdView/releases/download/v1.0.0/Markview-Setup-1.0.0.exe)
-- [Android APK](https://github.com/shoswaller/mdView/releases/download/v1.0.0/Markview-1.0.apk)
+- [Windows x64 installer](https://github.com/shoswaller/mdView/releases/download/v1.0.1/Markview-Setup-1.0.1.exe)
+- [Android APK](https://github.com/shoswaller/mdView/releases/download/v1.0.1/Markview-1.0.1.apk)
 - [All releases](https://github.com/shoswaller/mdView/releases)
 
 ## Features
@@ -20,7 +20,7 @@ The browser edition is a single, self-contained `index.html`. Styles, icons, the
 - **Export:** save the current document as Markdown without silently overwriting the original local file.
 - **Themes:** switch between light and dark themes.
 - **Local drafts:** automatically persist drafts in browser or application storage. Clearing application data, using private browsing, or changing the browser or file path may prevent recovery.
-- **Markdown support:** headings, tables, read-only task lists, blockquotes, code blocks, links, images, and other common syntax. Rendered HTML is sanitized.
+- **Markdown support:** headings, tables, read-only task lists, blockquotes, code blocks, links, images, and other common syntax. Mermaid code blocks render as offline diagrams with light/dark themes and per-diagram error messages. Rendered HTML and Mermaid SVG are sanitized.
 
 Keyboard shortcuts: `Ctrl / Cmd + O` opens a document and `Ctrl / Cmd + S` exports or saves it. In the editor, `Tab` indents and `Shift + Tab` outdents. Arrow keys switch tabs and adjust the pane separator when it is focused.
 
@@ -42,11 +42,11 @@ The Windows and Android applications include an **SFTP** button. Enter a host, S
 
 Only connect to servers you trust. Remote images and SFTP operations require network access; local Markdown files remain available offline.
 
-## Browser Edition
+## Shared Renderer Resources
 
-Open `index.html` directly in a modern browser. No build step is required. Third-party license notices are retained in the HTML.
+The clients use the root `index.html` together with the local `vendor/` and `web/` directories. A standalone single-file browser edition is not currently supported. Marked and DOMPurify license notices are retained in the HTML; the Mermaid license is included at `vendor/mermaid-LICENSE.txt`.
 
-The `.work/` directory contains local development sources and verification artifacts. It is not required to use or distribute the browser edition and is excluded from Git.
+The `.work/` directory contains local development sources and verification artifacts. It is not required to use or distribute the clients and is excluded from Git.
 
 ## Windows Development
 
@@ -84,7 +84,7 @@ Android 6.0 (API 23) or later is supported. The app requests no storage permissi
 
 Without a custom signing configuration, the release build uses the local Android debug certificate and is suitable for sideloaded testing. For distribution or upgrades over an existing installation, provide the original signing configuration through `MARKVIEW_KEYSTORE`, `MARKVIEW_KEYSTORE_PASSWORD`, `MARKVIEW_KEY_ALIAS`, and `MARKVIEW_KEY_PASSWORD`. Never commit signing keys or passwords.
 
-The Android web resource is stored at `android/app/src/main/assets/index.html` and must remain synchronized with the root `index.html`.
+The Android web resources are stored at `android/app/src/main/assets/` (`index.html`, `vendor/`, and `web/`) and must remain synchronized with the corresponding root files.
 
 ## License
 

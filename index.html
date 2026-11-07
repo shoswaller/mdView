@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="墨页：离线使用的单文件 Markdown 查看与编辑工具，支持实时预览、文件拖放和黑白主题。">
+  <meta name="description" content="墨页：离线 Markdown 查看与编辑工具，支持 Mermaid 图表、实时预览、文件拖放和黑白主题。">
   <meta name="color-scheme" content="light dark">
   <title>墨页 · Markdown 查看与编辑</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23252525'/%3E%3Cpath d='M8 9h7v15H8zm9 0h7v15h-7z' fill='white'/%3E%3C/svg%3E">
@@ -120,6 +120,13 @@ button,a,input,textarea,[tabindex] { -webkit-tap-highlight-color:transparent; }
 .markdown-body :not(pre)>code { background:var(--surface-muted); color:var(--text); border:1px solid var(--border); padding:2px 5px; border-radius:4px; }
 .markdown-body pre { background:var(--surface-muted); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-5); margin:var(--space-5) 0 var(--space-6); overflow:auto; line-height:1.8; overflow-wrap:normal; }
 .markdown-body pre code { font-size:1em; }
+.markdown-body .mermaid-diagram { margin:var(--space-5) 0 var(--space-6); padding:var(--space-5); border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); overflow:auto; text-align:center; }
+.markdown-body .mermaid-diagram>svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+.markdown-body .mermaid-status { color:var(--text-secondary); font-size:var(--font-meta); }
+.markdown-body .mermaid-diagram.is-error { text-align:left; }
+.markdown-body .mermaid-error>strong { color:var(--text); }
+.markdown-body .mermaid-error-detail { margin:var(--space-2) 0 0; padding:0; border:0; background:transparent; color:var(--text-secondary); font:var(--font-meta)/1.6 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+.markdown-body .mermaid-diagram .mermaid-source { max-height:320px; margin:var(--space-4) 0 0; text-align:left; }
 .markdown-body table { display:block; width:100%; overflow:auto; border-spacing:0; margin:var(--space-5) 0 var(--space-6); font-size:.9em; }
 .markdown-body th,.markdown-body td { padding:var(--space-3) var(--space-4); border-bottom:1px solid var(--border); text-align:left; min-width:120px; }
 .markdown-body th { color:var(--text); font-weight:600; background:var(--surface-muted); border-top:1px solid var(--border); }
@@ -582,6 +589,8 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
 }());
 
 </script>
+<script src="vendor/mermaid.min.js"></script>
+<script src="web/mermaid-renderer.js"></script>
 <script>
 (function () {
   'use strict';
@@ -597,6 +606,7 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
   let isExample = true;
   let draftAvailable = true;
   let renderTimer;
+  let renderRevision = 0;
   let draftTimer;
   let noticeTimer;
   let reading = false;
@@ -643,23 +653,34 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
     }
   }
 
-  function render() {
+  async function render() {
     clearTimeout(renderTimer);
+    const revision = ++renderRevision;
     const text = editor.value;
-    try {
-      output.innerHTML = window.MarkviewMarkdown.render(text);
-      output.hidden = !text.trim();
-      $('empty-state').hidden = !!text.trim();
-    } catch {
-      output.textContent = text;
-      notify('Markdown 渲染失败，暂时显示原始文本。', true);
-    }
+    const hasContent = !!text.trim();
+    output.hidden = !hasContent;
+    output.setAttribute('aria-busy', 'true');
+    $('empty-state').hidden = hasContent;
     const lines = text.split('\n').length;
     $('line-numbers').textContent = Array.from({ length:lines }, (_, index) => index + 1).join('\n');
     const characters = Array.from(text.replace(/\s/g, '')).length;
     $('character-count').textContent = `${characters.toLocaleString('zh-CN')} 字符`;
     $('reading-time').textContent = `约 ${Math.max(1, Math.ceil(characters / 400))} 分钟阅读`;
     updateState();
+    try {
+      const content = await window.MarkviewMermaid.render(text, {
+        theme:document.documentElement.dataset.theme,
+        isCurrent:() => revision === renderRevision
+      });
+      if (!content || revision !== renderRevision) return;
+      output.replaceChildren(content);
+    } catch {
+      if (revision !== renderRevision) return;
+      output.textContent = text;
+      notify('Markdown 渲染失败，暂时显示原始文本。', true);
+    } finally {
+      if (revision === renderRevision) output.setAttribute('aria-busy', 'false');
+    }
   }
 
   function cursor() {
@@ -680,13 +701,14 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
     if (value === 'edit' && focusEditor) editor.focus();
   }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, refreshDiagrams = true) {
     document.documentElement.dataset.theme = theme;
     const description = theme === 'light' ? '切换为黑色主题' : '切换为白色主题';
     $('theme-toggle').setAttribute('aria-label', description);
     $('theme-toggle').title = description;
     $('theme-toggle').querySelector('use').setAttribute('href', theme === 'light' ? '#i-moon' : '#i-sun');
     try { localStorage.setItem(themeKey, theme); } catch { /* The chosen theme remains usable for this visit. */ }
+    if (refreshDiagrams) render();
   }
 
   async function canReplace() {
@@ -1205,6 +1227,7 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
   editor.addEventListener('input', () => {
     clearTimeout(renderTimer);
     clearTimeout(draftTimer);
+    renderRevision++;
     renderTimer = setTimeout(render, 65);
     draftTimer = setTimeout(persist, 400);
     updateState();
@@ -1257,7 +1280,7 @@ function a(e,t){return n(e)||r(e,t)||o(e,t)||i()}function o(e,n){if(e){if(typeof
     }
   } catch { /* A missing or invalid local draft starts with the bundled example. */ }
   if (!restored) editor.value = initialSource;
-  applyTheme(['light','dark'].includes(storedTheme) ? storedTheme : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(['light','dark'].includes(storedTheme) ? storedTheme : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', false);
   render();
   cursor();
   if (restored) $('draft-state').textContent = '已恢复此浏览器中的草稿';

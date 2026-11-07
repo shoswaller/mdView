@@ -82,7 +82,7 @@
 
 ### SourcePane / PreviewPane
 - 源码为有可访问名称的原生 textarea，行号为辅助视觉且 `aria-hidden`；Tab 插入缩进，支持原生选择和撤销。
-- 预览是实际 DOM 文章，`contenteditable` 禁用；任务列表在预览内只读。Markdown HTML 消毒后渲染。
+- 预览是实际 DOM 文章，`contenteditable` 禁用；任务列表在预览内只读。Markdown HTML 消毒后渲染。Mermaid 使用严格模式异步生成图表，SVG 经独立安全清理后插入；编辑与主题切换只允许最新版本提交，语法错误逐图显示并保留源码。
 - 表格与代码块可通过 Tab 聚焦并横向滚动；主要工作区保留 main 地标，其内部 div 担任 tabpanel。
 - 状态：有文档、空文档、文件读取中、读取失败；空内容提供克制提示，错误不清空原文。
 

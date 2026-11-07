@@ -2,7 +2,7 @@
 
 **[English](README.md) | 简体中文**
 
-直接双击 `index.html` 即可打开，不需要安装、服务器或网络。应用样式、图标和 Markdown 解析依赖均已内嵌。
+Windows 和 Android 客户端共用本地渲染页面。Markdown 解析、安全清理和 Mermaid 引擎均随应用内置，本地文档无需网络。
 
 - **查看**：单窗口阅读渲染后的 Markdown。
 - **编辑**：左侧编辑 Markdown 源码，右侧只读实时预览；拖动中间分隔线调整宽度。
@@ -25,9 +25,9 @@ Windows 和 Android 应用顶部提供「SFTP」按钮。输入服务器地址�
 - 关闭应用或点击「断开」会关闭会话，但不会删除已保存的服务器配置；请仅连接可信服务器。
 - 单个远程文件上限为 10 MB。纯网页版没有原生 SFTP 后端，因此不显示此入口。
 
-支持标题、表格、只读任务清单、引用、代码块、链接、图片等常见 Markdown 语法。引用的远程图片仍需要网络；同目录图片可用相对路径引用。HTML 内容会经过安全过滤。
+支持标题、表格、只读任务清单、引用、代码块、链接、图片等常见 Markdown 语法。`mermaid` 代码块可离线渲染为图表，支持明暗主题、编辑时异步刷新和逐图语法错误提示。引用的远程图片仍需要网络；同目录图片可用相对路径引用。HTML 与 Mermaid 生成的 SVG 均会经过安全过滤。
 
-网页版本只需分发 `index.html`。`.work/` 保存开发时的源片段、依赖和验证记录，不影响直接使用。第三方许可已保留在 HTML 中。
+客户端共用根目录 `index.html`，并需同时携带 `vendor/` 和 `web/` 资源，暂不支持只分发单个 HTML 文件。`.work/` 保存开发时的源片段、依赖和验证记录。Marked 与 DOMPurify 的许可保留在 HTML 中，Mermaid 许可位于 `vendor/mermaid-LICENSE.txt`。
 
 ## Windows 应用
 
@@ -43,9 +43,9 @@ Windows x64 安装程序可在 [Releases](https://github.com/shoswaller/mdView/r
 
 Android APK 可在 [Releases](https://github.com/shoswaller/mdView/releases) 页面下载，支持 Android 6.0（API 23）及以上版本。应用名为「墨页」，无需登录，也不申请存储权限。
 
-- Markdown 引擎、样式和图标均内置，可离线阅读和编辑。
+- Markdown 与 Mermaid 引擎、样式和图标均内置，可离线阅读、编辑和查看图表。
 - 「打开文件」调用 Android 系统文件选择器，按 UTF-8 读取。
 - 「导出文件」调用系统「另存为」，只有写入成功后才将文档标记为已导出。
 - 草稿保存在应用本地；外部网页链接交给系统浏览器打开。
 
-Android 原生工程位于 `android/`，网页资源在构建时同步到 `android/app/src/main/assets/index.html`。构建需要 JDK 17、Android SDK 35 和 Gradle 8.9；在 `android/local.properties` 中配置本机 `sdk.dir` 后，可运行 `gradlew assembleRelease`。默认使用本机 Android 调试证书签名，适合直接侧载测试。正式分发或覆盖旧签名版本时，必须通过 `MARKVIEW_KEYSTORE`、`MARKVIEW_KEYSTORE_PASSWORD`、`MARKVIEW_KEY_ALIAS`、`MARKVIEW_KEY_PASSWORD` 环境变量提供原正式签名配置。
+Android 原生工程位于 `android/`，共享网页资源位于 `android/app/src/main/assets/`（`index.html`、`vendor/` 和 `web/`），需与根目录对应文件保持同步。构建需要 JDK 17、Android SDK 35 和 Gradle 8.9；在 `android/local.properties` 中配置本机 `sdk.dir` 后，可运行 `gradlew assembleRelease`。默认使用本机 Android 调试证书签名，适合直接侧载测试。正式分发或覆盖旧签名版本时，必须通过 `MARKVIEW_KEYSTORE`、`MARKVIEW_KEYSTORE_PASSWORD`、`MARKVIEW_KEY_ALIAS`、`MARKVIEW_KEY_PASSWORD` 环境变量提供原正式签名配置。
